@@ -7,7 +7,7 @@ import KTData from '../../helpers/data';
 import KTDom from '../../helpers/dom';
 import KTEventHandler from '../../helpers/event-handler';
 import KTComponent from '../component';
-import { KTTabsInterface, KTTabsConfigInterface } from './types';
+import {KTTabsConfigInterface, KTTabsInterface} from './types';
 
 declare global {
 	interface Window {
@@ -39,18 +39,37 @@ export class KTTabs extends KTComponent implements KTTabsInterface {
 
 		if (!this._element) return;
 		this._tabElements = this._element.querySelectorAll('[data-kt-tab-toggle]');
-		this._currentTabElement = this._element.querySelector(
+
+
+		this.getCurrentTabElement();
+		this.getCurrentContentElement();
+
+
+		this._handlers();
+	}
+
+	/**
+	 * read the current element live because Ajax Requests can re-create the whole tabs or single tab new
+	 * @protected
+	 *
+	 *
+	 * more
+	 */
+	protected getCurrentTabElement(): HTMLElement | null {
+		return this._currentTabElement = this._element.querySelector(
 			'.active[data-kt-tab-toggle]',
 		);
-		this._currentContentElement =
+	}
+
+	protected getCurrentContentElement(): HTMLElement | null {
+		return this._currentContentElement =
 			(this._currentTabElement &&
 				(KTDom.getElement(
-					this._currentTabElement.getAttribute('data-kt-tab-toggle'),
-				) ||
+						this._currentTabElement.getAttribute('data-kt-tab-toggle'),
+					) ||
 					KTDom.getElement(this._currentTabElement.getAttribute('href')))) ||
 			null;
 
-		this._handlers();
 	}
 
 	protected _handlers(): void {
@@ -67,14 +86,32 @@ export class KTTabs extends KTComponent implements KTTabsInterface {
 		);
 	}
 
+	/**
+	 * livewire updates need sometimes dynamic
+	 * @protected
+	 */
+	protected _isDynamic() {
+		if (this._element) {
+			return this._element.hasAttribute('data-kt-tab-dynamic') && (this._element.getAttribute('data-kt-tab-dynamic') === 'true');
+		}
+		return null;
+	}
+
 	protected _show(tabElement: HTMLElement): void {
 		if (this._isShown(tabElement) || this._isTransitioning) return;
 
-		const payload = { cancel: false };
+		const payload = {cancel: false};
 		this._fireEvent('show', payload);
 		this._dispatchEvent('show', payload);
 		if (payload.cancel === true) {
 			return;
+		}
+		/**
+		 * re-read i.e. for livewire responses which can be change the dom so the static this._currentContentElement or/and  this._currentTabElement does not exists anymore
+		 */
+		if (this._isDynamic()) {
+			this.getCurrentTabElement();
+			this.getCurrentContentElement();
 		}
 
 		this._currentTabElement?.classList.remove('active');
@@ -140,11 +177,14 @@ export class KTTabs extends KTComponent implements KTTabsInterface {
 		return this._show(tabElement);
 	}
 
-	public static keyboardArrow(): void {}
+	public static keyboardArrow(): void {
+	}
 
-	public static keyboardJump(): void {}
+	public static keyboardJump(): void {
+	}
 
-	public static handleAccessibility(): void {}
+	public static handleAccessibility(): void {
+	}
 
 	public static getInstance(element: HTMLElement): KTTabs {
 		if (!element) return null;

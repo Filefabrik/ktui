@@ -15,4 +15,6 @@ export {
 	EventManager,
 	TypeToSearchBuffer,
 } from './utils';
-export { KTSelectConfigInterface, KTSelectOption } from './config';
+
+//tmp disabled
+// export { KTSelectConfigInterface, KTSelectOption } from './config';
